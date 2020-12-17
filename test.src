@@ -1,16 +1,21 @@
 else: add $s0, $zero, $zero
 and $s0, $zero, $zero
 loop1: addi $s0, $s0, 50
-blt $s0, $s1 Loop
+j else
+elsee: blt $s0, $s1 Loop
 lw $s0, 48($s5)
 sll $t0, $s0, 5
 
+#this is a test comment
 Loop: beq $s0, $s2, Exit
 add $s0, $s0, $s1
+j elsee
 other: add $s0, $zero, $zero
+
 
 beq $s0, $s1, Else
 add $s3, $s0, $s1
+j Exit
 Else: sub $s3, $s0, $s1
 Exit: add $s0, $zero, $zero
 beq $s0, $s1, Else
@@ -30,8 +35,10 @@ around: slt $s4, $s7, $s2
 add $s7, $s4, $s5        
 sub $s7, $s7, $s2        
 srl $s7, $s7, 2         
+jr $s7                 
 addi $s2, $zero, 1        
 sw $s7, 68($s3)         
 lw $s2, 80($zero)         
+j end                 
 addi $s2, $zero, 1        
-end: sw $s2, 84($0)
+end: sw $s2, 84($s0)     
