@@ -1,4 +1,29 @@
 import os
+import sys
+import argparse
+
+def input_arguments():
+    """
+    Takes the input from terminal and returns a parse dictionary for arguments
+    
+    Parameters
+    ----------
+    NONE
+    """
+    parser = argparse.ArgumentParser(description="This is an assembler")
+    parser.add_argument("-s" ,"--source", type= str, nargs= 1,
+                        help="source code to be converted to machine language")
+    parser.add_argument("-o", "--object", type= str, nargs = 1,
+                        help="output file to be saved")
+    parser.add_argument("-i", "--interactive", type= str, nargs = 1,
+                        help="interactive code converter")
+
+    global args
+    args = vars(parser.parse_args())
+    if len(sys.argv) == 1:
+        parser.print_help()
+        sys.exit()
+    return args
 
 def load_regs():
     d = {}
@@ -45,6 +70,18 @@ def label_writer(word):
     label_file.write(word[0]+" "+str(address)+"\n")
     label_file.close()
 
+def twos_complement(instr):
+    val = bin(-int(instr[1:])+(2*int(instr[1:])))[2:]
+    val = val.replace("1","a")
+    val = val.replace("0","b")
+    val = val.replace("a","0")
+    val = val.replace("b","1")
+    temp_len = len(val)
+    val = bin(int(val,2)+1)[2:].zfill(temp_len)
+    val = val.rjust(8-len(val) + len(val), '1')
+    val = val.zfill(16)
+    return val
+
 def r_type(instr):
     i=0
     if(len(instr)>4):
@@ -52,9 +89,15 @@ def r_type(instr):
     word = rtype
     word = word.replace("op",instructions[instr[0+i]][:6])
     word = word.replace("rd",reg2bin(instr[1+i]))
-    word = word.replace("rs",reg2bin(instr[2+i]))
-    word = word.replace("rt",reg2bin(instr[3+i]))
-    word = word.replace("sh",reg2bin("$zero"))
+    if(instr[0+i]=='sll' or instr[0+i]=='srl'):
+        word = word.replace("rs",reg2bin("$zero"))
+        word = word.replace("rt",reg2bin(instr[2+i]))
+        valu = bin(int(instr[3+i]))[2:].zfill(5)
+        word = word.replace("sh",valu)
+    else:
+        word = word.replace("rs",reg2bin(instr[2+i]))
+        word = word.replace("rt",reg2bin(instr[3+i]))
+        word = word.replace("sh",reg2bin("$zero"))
     word = word.replace("fn",instructions[instr[0+i]][26:])
     return word
 
@@ -64,32 +107,35 @@ def i_type1(instr):
         i+=1
     word = itype1
     word = itype1.replace("op",instructions[instr[0+i]][:6])
+    word = word.replace("rs",reg2bin(instr[3+i]))
     word = word.replace("rt",reg2bin(instr[1+i]))
     word = word.replace("off",bin(int(instr[2+i]))[2:].zfill(16))
-    word = word.replace("rs",reg2bin(instr[3+i]))
+    
     return word
 
 def i_type2(instr):
     i=0
     if(len(instr)>4):
         i+=1
-    
-    
-    offset = int(abs(current_address-address)/4)-1
-    print("current address: ",current_address)
     word = itype2
     word = itype2.replace("op",instructions[instr[0+i]][:6])
-    word = word.replace("rt",reg2bin(instr[2+i]))
-    word = word.replace("rs",reg2bin(instr[1+i]))
+    word = word.replace("rt",reg2bin(instr[1+i]))
+    word = word.replace("rs",reg2bin(instr[2+i]))
     if(instr[0+i][0] == "b"):
-        word = word.replace("addr",bin(int(offset))[2:].zfill(16))
-    elif(instr[i+3] in labels):
-        word = word.replace("addr",bin(int(int(labels[instr[i+3]])/4))[2:].zfill(16))
+        label_address = int(labels.get(instr[i+3]))
+        label_offset = int((label_address-current_address-4)/4)
+        if(label_offset <0):
+            val = bin(-int(abs(label_offset))+(1<<int(abs(label_offset))))[2:]
+            val = val.rjust(16-len(val) + len(val), '1')
+            val = val[-16:]
+            word = word.replace("addr",val)
+        else:
+            word = word.replace("addr",bin(label_offset)[2:].zfill(16))
     elif(int(instr[i+3])<0):
-        val = bin(-int(instr[i+3][1:])+(1<<int(instr[i+3][1:])))
-        word = word.replace("addr",val[2:].zfill(16))
+        
+        word = word.replace("addr",twos_complement(instr[i+3]))
     elif(int(instr[i+3])>=0):
-        word = word.replace("addr",bin(int(int(instr[3+i])/4))[2:].zfill(16))
+        word = word.replace("addr",bin(int(int(instr[3+i])))[2:].zfill(16))
     else:
         val = bin(int(int(instr[i+3])/4))
         word = word.replace("addr",val[2:].zfill(16))
@@ -112,57 +158,34 @@ def j_type(instr):
         word = word.replace("addr",bin(int(int(instr[1+i])/4))[2:].zfill(26))
     return word
 
-
-address = 0
-current_address = 0
-labels = None
-rtype = None
-itype1 = None
-itype2 = None
-jtype = None
-registers = load_regs()
-instructions = load_instr()
-
-f= open("test.src","r")
-code = f.read()
-instrs = code.split("\n")
-f.close()
-ff = open("output.obj","w")
-
-
-
-def main():
-    global address
-    global labels
-    global instrs
-    global rtype
-    global itype1
-    global itype2
-    global jtype
-    global current_address
+def handle_pseudo():
     j=0
-
     for instr in instrs:
         if(len(instr)!=0 and instr[0] != "#"):
-            i=0
-            if(len(instr)>4):
-                i+=1
+            
             word = format_word(instr)
             word = word.split()
-            print(word)
-            d = {"blt":"bne", "ble":"beq","bgt":"bne","bge":"beq"}
+            i=0
+            if(len(word)>4):
+                i+=1
+            d = {"blt":"bne", "ble":"beq","bgt":"bne","bge":"beq","move":"add"}
             if(word[i+0] in d):
                 del instrs[j]
                 if(i==1):
                     label = word[0]+": "
                 else:
                     label=""
-                instrs.insert(j,label+"slt $a0, "+word[i+1]+", "+word[i+2])
-                instrs.insert(j+1, d.get(word[i+0])+" $a0, $zero, " +word[i+3])
-        j+=1
 
-        
+                if(word[i+0]=='move'):
+                    instrs.insert(j,label+d.get(word[i+0])+" "+word[i+1]+", "+word[i+2]+", $zero")
+                else:
+                    instrs.insert(j,label+"slt $at, "+word[i+1]+", "+word[i+2])
+                    instrs.insert(j+1, d.get(word[i+0])+" $at, $zero, " +word[i+3])
+                    
+        j+=1 
 
+def handle_labels():
+    global address
     for instr in instrs:
         if(len(instr)!=0 and instr[0] != "#"):
 
@@ -175,31 +198,106 @@ def main():
                 label_writer(word)
             elif((dollar == 1 or dollar == 0)and len(word)>2):
                 label_writer(word)
-        address+=4
-    labels = load_labels()
-    os.remove("labels.txt")
+            address+=4
 
+def translate(ff):
+    global instrs
+    global current_address
+    global rtype
+    global itype1
+    global itype2
+    global jtype
+    
     for instr in instrs:
         if(len(instr)!=0 and instr[0] != "#"):
-            print(instr)
-            print(current_address)
+            print("PC: "+str(current_address)+"--> "+instr)
             rtype = "oprsrtrdshfn"
             itype1 = "oprsrtoff"
             itype2 = "oprsrtaddr"
             jtype= "opaddr"
             instr = format_word(instr)
-            dollar = instr.count("$")
             instr = instr.split()
-            if(dollar == 3):
-                ff.write(bin2hex(r_type(instr))+"\n")
-            elif(dollar == 2 and instr[-1][0] == "$"):
-                ff.write(bin2hex(i_type1(instr))+"\n")
-            elif(dollar == 2):
-                ff.write(bin2hex(i_type2(instr))+"\n")
-            elif(dollar == 1 or dollar == 0):
-                ff.write(bin2hex(j_type(instr))+"\n")
+            i=0
+            if(len(instr)>4):
+                i+=1    
+            r_types = ["add","addu","sub","subu","and","or","nor","slt","sltu","sll","srl"]
+            i_type1s = ["lw","sw"]
+            i_type2s = ["beq","bne","addi","addiu","andi","ori","slti","sltiu","lui"]
+            j_types =["j","jal","jr"]
+
+            if(instr[0+i] in r_types):
+                if(ff != None):
+                    ff.write(bin2hex(r_type(instr))+"\n")
+                else:
+                    print(bin2hex(r_type(instr)))
+            elif(instr[0+i] in i_type1s):
+                if(ff != None):
+                    ff.write(bin2hex(i_type1(instr))+"\n")
+                else:
+                    print(bin2hex(i_type1(instr)))
+            elif(instr[0+i] in i_type2s):
+                if(ff != None):
+                    ff.write(bin2hex(i_type2(instr))+"\n")
+                else:
+                    print(bin2hex(i_type2(instr)))
+            elif(instr[0+i] in j_types):
+                if(ff != None):
+                    ff.write(bin2hex(j_type(instr))+"\n")
+                else:
+                    print(bin2hex(j_type(instr)))
             current_address += 4
-    ff.close()
+
+def main():
+    global args
+    global address
+    global labels
+    global instrs
+    global rtype
+    global itype1
+    global itype2
+    global jtype
+    global current_address
+    global instructions
+    global registers
+
+    registers = load_regs()
+    instructions = load_instr()
+    args = input_arguments()
+
+    if(args["interactive"] == None):
+        inputfile = args["source"][0]
+        outputfile = args["object"][0]
+
+        f= open(inputfile,"r")
+        code = f.read()
+        instrs = code.split("\n")
+        f.close()
+        ff = open(outputfile,"w")
+        handle_pseudo()
+        handle_labels()
+        labels = load_labels()
+        os.remove("labels.txt")
+        translate(ff)
+        ff.close()
+
+    else:
+        instrs = []
+        instrs.append(args["interactive"][0])
+        handle_pseudo()
+        translate(None)
+
+
+address = 4194304
+current_address = 4194304
+labels = None
+rtype = None
+itype1 = None
+itype2 = None
+jtype = None
+args = None
+instrs = None
+instructions = None
+registers = None
 
 
 if __name__ == "__main__":
