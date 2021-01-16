@@ -10,7 +10,10 @@ def input_arguments():
     ----------
     NONE
     """
-    parser = argparse.ArgumentParser(description="This is an assembler")
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter,description="This is an assembler made by CNG students 2385128 and 2315125",
+    usage="\nBatch mode: python assembler.py -s source -o output\ninteractive mode: python assembler -i 'MIPS instruction'\n\
+example run: python assembler.py -s source.src -o output.obj")
+
     parser.add_argument("-s" ,"--source", type= str, nargs= 1,
                         help="source code to be converted to machine language")
     parser.add_argument("-o", "--object", type= str, nargs = 1,
@@ -26,6 +29,13 @@ def input_arguments():
     return args
 
 def load_regs():
+    """
+    It reads register from file.
+    
+    Parameters
+    ----------
+    NONE
+    """
     d = {}
     with open("registers.txt") as f:
         for line in f:
@@ -35,6 +45,13 @@ def load_regs():
     return d
 
 def load_instr():
+    """
+    It reads instructions from file.
+    
+    Parameters
+    ----------
+    NONE
+    """
     d = {}
     with open("instructions.txt") as f:
         for line in f:
@@ -44,6 +61,13 @@ def load_instr():
     return d
 
 def load_labels():
+    """
+    It reads labels and their addresses from file.
+    
+    Parameters
+    ----------
+    NONE
+    """
     d = {}
     with open("labels.txt") as f:
         for line in f:
@@ -53,12 +77,33 @@ def load_labels():
     return d
 
 def reg2bin(reg):
+    """
+    It gets reg and convert it and return its binary equivalent.
+    
+    Parameters
+    ----------
+    reg 
+    """
     return bin(registers.get(reg))[2:].zfill(5)
 
 def bin2hex(binary):
+    """
+    It gets binary and convert it and return its hexadecimal equivalent.
+    
+    Parameters
+    ----------
+    binary
+    """
     return "0x"+hex(int(binary, 2))[2:].zfill(8)
 
 def format_word(instr):
+    """
+    It gets instr and convert it to readable format. Then, returns it.
+    
+    Parameters
+    ----------
+    instr
+    """
     instr = instr.replace(":","",1)
     instr = instr.replace(","," ",2)
     instr = instr.replace("("," ",1)
@@ -66,11 +111,25 @@ def format_word(instr):
     return instr
 
 def label_writer(word):
+    """
+    It writes the label and its address to a file.
+    
+    Parameters
+    ----------
+    NONE
+    """
     label_file = open("labels.txt","a+")
     label_file.write(word[0]+" "+str(address)+"\n")
     label_file.close()
 
 def twos_complement(instr):
+    """
+    returns twos complement of an negative value
+    
+    Parameters
+    ----------
+    instr negative number as stirng
+    """
     val = bin(-int(instr[1:])+(2*int(instr[1:])))[2:]
     val = val.replace("1","a")
     val = val.replace("0","b")
@@ -83,6 +142,13 @@ def twos_complement(instr):
     return val
 
 def r_type(instr):
+    """
+    converts r type mips instruction into hex value
+    
+    Parameters
+    ----------
+    instr: instruction
+    """
     i=0
     if(len(instr)>4):
         i+=1
@@ -102,6 +168,13 @@ def r_type(instr):
     return word
 
 def i_type1(instr):
+    """
+    converts i type mips instruction into hex value
+    
+    Parameters
+    ----------
+    instr: instruction
+    """
     i=0
     if(len(instr)>4):
         i+=1
@@ -114,6 +187,13 @@ def i_type1(instr):
     return word
 
 def i_type2(instr):
+    """
+    converts i type mips instruction into hex value
+    
+    Parameters
+    ----------
+    instr: instruction
+    """
     i=0
     if(len(instr)>4):
         i+=1
@@ -143,6 +223,13 @@ def i_type2(instr):
     return word
 
 def j_type(instr):
+    """
+    converts j type mips instruction into hex value
+    
+    Parameters
+    ----------
+    instr: instruction
+    """
     i=0
     if(len(instr)>4):
         i+=1
@@ -159,6 +246,13 @@ def j_type(instr):
     return word
 
 def handle_pseudo():
+    """
+    converts pseudo code into real mips instructions and replaces it in the instructions list
+    
+    Parameters
+    ----------
+    instr: NONE
+    """
     j=0
     for instr in instrs:
         if(len(instr)!=0 and instr[0] != "#"):
@@ -185,6 +279,13 @@ def handle_pseudo():
         j+=1 
 
 def handle_labels():
+    """
+    calculates the corresponding label addresses for instructions 
+    
+    Parameters
+    ----------
+    instr: instruction
+    """
     global address
     for instr in instrs:
         if(len(instr)!=0 and instr[0] != "#"):
@@ -201,6 +302,13 @@ def handle_labels():
             address+=4
 
 def translate(ff):
+    """
+    translates MIPS instruction into hex value with correspoınding type 
+    
+    Parameters
+    ----------
+    ff: file output stream
+    """
     global instrs
     global current_address
     global rtype
@@ -248,6 +356,13 @@ def translate(ff):
             current_address += 4
 
 def main():
+    """
+    It's main part where we will decide if we read a file our get an input as an interactive session.
+    If it is interactive, we will skip label and file operation and directly handle it.
+    
+    Parameters
+    ----------
+    """
     global args
     global address
     global labels
@@ -286,7 +401,9 @@ def main():
         handle_pseudo()
         translate(None)
 
-
+"""
+GLOBALS
+"""
 address = 4194304
 current_address = 4194304
 labels = None
