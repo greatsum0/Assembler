@@ -145,6 +145,9 @@ def r_type(instr):
     """
     converts r type mips instruction into hex value
     
+    this method does the following. it replaces the op rd rs rt sh and fn places in a string into corresponding values for given 
+    instruction in instr.
+
     Parameters
     ----------
     instr: instruction
@@ -169,8 +172,11 @@ def r_type(instr):
 
 def i_type1(instr):
     """
-    converts i type mips instruction into hex value
+    converts i type mips instruction into hex value. it is used to calculate the i type machine code for offset type.
     
+    this method does the following. it replaces the op rd rs rt off places in a string into corresponding values for given 
+    instruction in instr.
+
     Parameters
     ----------
     instr: instruction
@@ -188,7 +194,10 @@ def i_type1(instr):
 
 def i_type2(instr):
     """
-    converts i type mips instruction into hex value
+    converts i type mips instruction into hex value. it is used to calculate the i type machine code for address type.
+    
+    this method does the following. it replaces the op rd rs rt addr places in a string into corresponding values for given 
+    instruction in instr.
     
     Parameters
     ----------
@@ -224,8 +233,11 @@ def i_type2(instr):
 
 def j_type(instr):
     """
-    converts j type mips instruction into hex value
+    converts j type mips instruction into hex value. it is used to calculate the j type machine code for addres type.
     
+    this method does the following. it replaces the op addr places in a string into corresponding values for given 
+    instruction in instr.
+
     Parameters
     ----------
     instr: instruction
@@ -249,6 +261,8 @@ def handle_pseudo():
     """
     converts pseudo code into real mips instructions and replaces it in the instructions list
     
+    this method removes the pseudo instruction from intstrs list and replaces it by its corresponding mips codes
+
     Parameters
     ----------
     instr: NONE
@@ -282,6 +296,8 @@ def handle_labels():
     """
     calculates the corresponding label addresses for instructions 
     
+    this method counts the number of $'s in the mips code and decides along with length of the instruction to decide on it is labeled or not 
+
     Parameters
     ----------
     instr: instruction
@@ -305,6 +321,7 @@ def translate(ff):
     """
     translates MIPS instruction into hex value with correspoınding type 
     
+    this method decides the instruction type and assembles the code accordingly
     Parameters
     ----------
     ff: file output stream
@@ -379,6 +396,7 @@ def main():
     instructions = load_instr()
     args = input_arguments()
 
+    #pipeline for batch mode
     if(args["interactive"] == None):
         inputfile = args["source"][0]
         outputfile = args["object"][0]
@@ -394,7 +412,7 @@ def main():
         os.remove("labels.txt")
         translate(ff)
         ff.close()
-
+    #pipeline for interactive mode
     else:
         instrs = []
         instrs.append(args["interactive"][0])
