@@ -12,7 +12,10 @@ def input_arguments():
     """
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter,description="This is an assembler made by CNG students 2385128 and 2315125",
     usage="\nBatch mode: python assembler.py -s source -o output\ninteractive mode: python assembler -i 'MIPS instruction'\n\
-example run: python assembler.py -s source.src -o output.obj")
+debug mode: append -d to the arguments to see PC and instructions\n\
+example run: python assembler.py -s source.src -o output.obj -d\n\
+example run: python assembler.py -s source.src -o output.obj\n\
+example run: python assembler.py -i 'addi $s1, $s0, -1'")
 
     parser.add_argument("-s" ,"--source", type= str, nargs= 1,
                         help="source code to be converted to machine language")
