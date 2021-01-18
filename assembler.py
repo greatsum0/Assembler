@@ -171,7 +171,7 @@ def r_type(instr):
         word = word.replace("fn",instructions[instr[0+i]][26:])
         return word
     except:
-        print("there is an syntax error in this instruction line["+str(int((current_address-start_address)/4)+1)+"] -> "+str(instr))
+        print("there is an syntax error in this instruction line["+str(int((current_address-start_address)/4)+1+spaces)+"] -> "+str(instr))
         sys.exit()
 
 
@@ -198,7 +198,7 @@ def i_type1(instr):
         
         return word
     except:
-        print("there is an syntax error in this instruction line["+str(int((current_address-start_address)/4)+1)+"] -> "+str(instr))
+        print("there is an syntax error in this instruction line["+str(int((current_address-start_address)/4)+1+spaces)+"] -> "+str(instr))
         sys.exit()
 def i_type2(instr):
     """
@@ -240,7 +240,7 @@ def i_type2(instr):
         
         return word
     except:
-        print("there is an syntax error in this instruction line["+str(int((current_address-start_address)/4)+1)+"] -> "+str(instr))
+        print("there is an syntax error in this instruction line["+str(int((current_address-start_address)/4)+1+spaces)+"] -> "+str(instr))
         sys.exit()
 
 def j_type(instr):
@@ -254,6 +254,7 @@ def j_type(instr):
     ----------
     instr: instruction
     """
+    global spaces
     try:
         i=0
         if(len(instr)>4):
@@ -270,7 +271,7 @@ def j_type(instr):
             word = word.replace("addr",bin(int(int(instr[1+i])/4))[2:].zfill(26))
         return word
     except:
-        print("there is an syntax error in this instruction line["+str(int((current_address-start_address)/4)+1)+"] -> "+str(instr))
+        print("there is an syntax error in this instruction line["+str(int((current_address-start_address)/4)+1+spaces)+"] -> "+str(instr))
         sys.exit()
 def handle_pseudo():
     """
@@ -347,6 +348,7 @@ def translate(ff):
     global itype1
     global itype2
     global jtype
+    global spaces
     
     for instr in instrs:
         if(len(instr)!=0 and instr[0] != "#"):
@@ -385,7 +387,12 @@ def translate(ff):
                     ff.write(bin2hex(j_type(instr))+"\n")
                 else:
                     print(bin2hex(j_type(instr)))
+            else:
+                print("there is an syntax error in this instruction line["+str(int((current_address-start_address)/4)+1+spaces)+"] -> "+str(instr))
+                sys.exit()
             current_address += 4
+        else:
+            spaces+=1
 
 def main():
     """
@@ -440,6 +447,7 @@ GLOBALS
 address = 4194304
 current_address = 4194304
 start_address = 4194304
+spaces = 0
 labels = None
 rtype = None
 itype1 = None
