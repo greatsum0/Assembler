@@ -171,7 +171,7 @@ def r_type(instr):
         word = word.replace("fn",instructions[instr[0+i]][26:])
         return word
     except:
-        print("there is an syntax error in this instruction -> "+str(instr))
+        print("there is an syntax error in this instruction line["+str(int((current_address-start_address)/4)+1)+"] -> "+str(instr))
         sys.exit()
 
 
@@ -198,7 +198,7 @@ def i_type1(instr):
         
         return word
     except:
-        print("there is an syntax error in this instruction -> "+str(instr))
+        print("there is an syntax error in this instruction line["+str(int((current_address-start_address)/4)+1)+"] -> "+str(instr))
         sys.exit()
 def i_type2(instr):
     """
@@ -240,7 +240,7 @@ def i_type2(instr):
         
         return word
     except:
-        print("there is an syntax error in this instruction -> "+str(instr))
+        print("there is an syntax error in this instruction line["+str(int((current_address-start_address)/4)+1)+"] -> "+str(instr))
         sys.exit()
 
 def j_type(instr):
@@ -270,7 +270,7 @@ def j_type(instr):
             word = word.replace("addr",bin(int(int(instr[1+i])/4))[2:].zfill(26))
         return word
     except:
-        print("there is an syntax error in this instruction -> "+str(instr))
+        print("there is an syntax error in this instruction line["+str(int((current_address-start_address)/4)+1)+"] -> "+str(instr))
         sys.exit()
 def handle_pseudo():
     """
@@ -439,6 +439,7 @@ GLOBALS
 """
 address = 4194304
 current_address = 4194304
+start_address = 4194304
 labels = None
 rtype = None
 itype1 = None
