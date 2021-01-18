@@ -152,23 +152,28 @@ def r_type(instr):
     ----------
     instr: instruction
     """
-    i=0
-    if(len(instr)>4):
-        i+=1
-    word = rtype
-    word = word.replace("op",instructions[instr[0+i]][:6])
-    word = word.replace("rd",reg2bin(instr[1+i]))
-    if(instr[0+i]=='sll' or instr[0+i]=='srl'):
-        word = word.replace("rs",reg2bin("$zero"))
-        word = word.replace("rt",reg2bin(instr[2+i]))
-        valu = bin(int(instr[3+i]))[2:].zfill(5)
-        word = word.replace("sh",valu)
-    else:
-        word = word.replace("rs",reg2bin(instr[2+i]))
-        word = word.replace("rt",reg2bin(instr[3+i]))
-        word = word.replace("sh",reg2bin("$zero"))
-    word = word.replace("fn",instructions[instr[0+i]][26:])
-    return word
+    try:
+        i=0
+        if(len(instr)>4):
+            i+=1
+        word = rtype
+        word = word.replace("op",instructions[instr[0+i]][:6])
+        word = word.replace("rd",reg2bin(instr[1+i]))
+        if(instr[0+i]=='sll' or instr[0+i]=='srl'):
+            word = word.replace("rs",reg2bin("$zero"))
+            word = word.replace("rt",reg2bin(instr[2+i]))
+            valu = bin(int(instr[3+i]))[2:].zfill(5)
+            word = word.replace("sh",valu)
+        else:
+            word = word.replace("rs",reg2bin(instr[2+i]))
+            word = word.replace("rt",reg2bin(instr[3+i]))
+            word = word.replace("sh",reg2bin("$zero"))
+        word = word.replace("fn",instructions[instr[0+i]][26:])
+        return word
+    except:
+        print("there is an syntax error in this instruction -> "+str(instr))
+        sys.exit()
+
 
 def i_type1(instr):
     """
@@ -181,17 +186,20 @@ def i_type1(instr):
     ----------
     instr: instruction
     """
-    i=0
-    if(len(instr)>4):
-        i+=1
-    word = itype1
-    word = itype1.replace("op",instructions[instr[0+i]][:6])
-    word = word.replace("rs",reg2bin(instr[3+i]))
-    word = word.replace("rt",reg2bin(instr[1+i]))
-    word = word.replace("off",bin(int(instr[2+i]))[2:].zfill(16))
-    
-    return word
-
+    try:
+        i=0
+        if(len(instr)>4):
+            i+=1
+        word = itype1
+        word = itype1.replace("op",instructions[instr[0+i]][:6])
+        word = word.replace("rs",reg2bin(instr[3+i]))
+        word = word.replace("rt",reg2bin(instr[1+i]))
+        word = word.replace("off",bin(int(instr[2+i]))[2:].zfill(16))
+        
+        return word
+    except:
+        print("there is an syntax error in this instruction -> "+str(instr))
+        sys.exit()
 def i_type2(instr):
     """
     converts i type mips instruction into hex value. it is used to calculate the i type machine code for address type.
@@ -203,33 +211,37 @@ def i_type2(instr):
     ----------
     instr: instruction
     """
-    i=0
-    if(len(instr)>4):
-        i+=1
-    word = itype2
-    word = itype2.replace("op",instructions[instr[0+i]][:6])
-    word = word.replace("rt",reg2bin(instr[1+i]))
-    word = word.replace("rs",reg2bin(instr[2+i]))
-    if(instr[0+i][0] == "b"):
-        label_address = int(labels.get(instr[i+3]))
-        label_offset = int((label_address-current_address-4)/4)
-        if(label_offset <0):
-            val = bin(-int(abs(label_offset))+(1<<int(abs(label_offset))))[2:]
-            val = val.rjust(16-len(val) + len(val), '1')
-            val = val[-16:]
-            word = word.replace("addr",val)
+    try:
+        i=0
+        if(len(instr)>4):
+            i+=1
+        word = itype2
+        word = itype2.replace("op",instructions[instr[0+i]][:6])
+        word = word.replace("rt",reg2bin(instr[1+i]))
+        word = word.replace("rs",reg2bin(instr[2+i]))
+        if(instr[0+i][0] == "b"):
+            label_address = int(labels.get(instr[i+3]))
+            label_offset = int((label_address-current_address-4)/4)
+            if(label_offset <0):
+                val = bin(-int(abs(label_offset))+(1<<int(abs(label_offset))))[2:]
+                val = val.rjust(16-len(val) + len(val), '1')
+                val = val[-16:]
+                word = word.replace("addr",val)
+            else:
+                word = word.replace("addr",bin(label_offset)[2:].zfill(16))
+        elif(int(instr[i+3])<0):
+            
+            word = word.replace("addr",twos_complement(instr[i+3]))
+        elif(int(instr[i+3])>=0):
+            word = word.replace("addr",bin(int(int(instr[3+i])))[2:].zfill(16))
         else:
-            word = word.replace("addr",bin(label_offset)[2:].zfill(16))
-    elif(int(instr[i+3])<0):
+            val = bin(int(int(instr[i+3])/4))
+            word = word.replace("addr",val[2:].zfill(16))
         
-        word = word.replace("addr",twos_complement(instr[i+3]))
-    elif(int(instr[i+3])>=0):
-        word = word.replace("addr",bin(int(int(instr[3+i])))[2:].zfill(16))
-    else:
-        val = bin(int(int(instr[i+3])/4))
-        word = word.replace("addr",val[2:].zfill(16))
-    
-    return word
+        return word
+    except:
+        print("there is an syntax error in this instruction -> "+str(instr))
+        sys.exit()
 
 def j_type(instr):
     """
@@ -242,21 +254,24 @@ def j_type(instr):
     ----------
     instr: instruction
     """
-    i=0
-    if(len(instr)>4):
-        i+=1
-    word = jtype
-    word = jtype.replace("op",instructions[instr[0+i]][:6])
-    if(instr[i+1] in labels):
-        word = word.replace("addr",bin(int(int(labels[instr[i+1]])/4))[2:].zfill(26))
-    elif(instr[i+1][0]=="$"):
-        word = word.replace("addr",reg2bin(instr[i+1]))
-        word = word+bin(0)[2:].zfill(15)
-        word = word+instructions[instr[0+i]][26:]
-    else:
-        word = word.replace("addr",bin(int(int(instr[1+i])/4))[2:].zfill(26))
-    return word
-
+    try:
+        i=0
+        if(len(instr)>4):
+            i+=1
+        word = jtype
+        word = jtype.replace("op",instructions[instr[0+i]][:6])
+        if(instr[i+1] in labels):
+            word = word.replace("addr",bin(int(int(labels[instr[i+1]])/4))[2:].zfill(26))
+        elif(instr[i+1][0]=="$"):
+            word = word.replace("addr",reg2bin(instr[i+1]))
+            word = word+bin(0)[2:].zfill(15)
+            word = word+instructions[instr[0+i]][26:]
+        else:
+            word = word.replace("addr",bin(int(int(instr[1+i])/4))[2:].zfill(26))
+        return word
+    except:
+        print("there is an syntax error in this instruction -> "+str(instr))
+        sys.exit()
 def handle_pseudo():
     """
     converts pseudo code into real mips instructions and replaces it in the instructions list
