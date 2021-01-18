@@ -20,6 +20,8 @@ example run: python assembler.py -s source.src -o output.obj")
                         help="output file to be saved")
     parser.add_argument("-i", "--interactive", type= str, nargs = 1,
                         help="interactive code converter")
+    parser.add_argument("-d", "--debug", type= int, nargs = "?", const= 1,
+                        help="to print instructions with their addresses to debug")
 
     global args
     args = vars(parser.parse_args())
@@ -352,7 +354,8 @@ def translate(ff):
     
     for instr in instrs:
         if(len(instr)!=0 and instr[0] != "#"):
-            print("PC: "+str(current_address)+"--> "+instr)
+            if(args["debug"] == 1):
+                print("PC: "+str(current_address)+"--> "+instr)
             rtype = "oprsrtrdshfn"
             itype1 = "oprsrtoff"
             itype2 = "oprsrtaddr"
