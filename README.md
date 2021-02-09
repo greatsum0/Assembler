@@ -53,11 +53,15 @@ Batch mode: python assembler.py -s source -o output
 interactive mode: python assembler -i 'MIPS instruction'
 
 debug mode: append -d to the arguments to see PC and instructions  
-
-example run: ```python assembler.py -s source.src -o output.obj -d```
-example run: ```python assembler.py -s source.src -o output.obj```
-example run: ```python assembler.py -i 'addi $s1, $s0, -1'```
-
+```
+python assembler.py -s source.src -o output.obj -d
+```
+```
+python assembler.py -s source.src -o output.obj
+```
+```
+python assembler.py -i 'addi $s1, $s0, -1'
+```
 # What is instructions.txt
 
 Text file that contains skeleton of the instructions.
