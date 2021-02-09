@@ -10,7 +10,7 @@ def input_arguments():
     ----------
     NONE
     """
-    parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter,description="This is an assembler made by CNG students 2385128 and 2315125",
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter,description="This is an assembler",
     usage="\nBatch mode: python assembler.py -s source -o output\ninteractive mode: python assembler -i 'MIPS instruction'\n\
 debug mode: append -d to the arguments to see PC and instructions\n\
 example run: python assembler.py -s source.src -o output.obj -d\n\
